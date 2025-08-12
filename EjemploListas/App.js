@@ -1,6 +1,6 @@
 import { StatusBar } from 'expo-status-bar';
 
-import { StyleSheet, Text, View, FlatList, TextInput, Button, Alert, editable } from 'react-native';
+import { StyleSheet, Text, View, FlatList, TextInput, Button, Alert, editable, TouchableOpacity, Modal } from 'react-native';
 import { useState } from 'react';
 
 
@@ -28,47 +28,77 @@ export default function App() {
   const [txtId, setTxtId] = useState();
   const [numElementos, setNumElementos] = useState(productos.length);
 
-  let ItemProducto = (props) => {
-    return (
-      <View style={styles.itemPersona}>
-        <View style={styles.itemIndice}>
-          <Text>{props.item.id}</Text>
-        </View>
-        <View style={styles.itemContenido}>
-          <Text>
-            {props.item.nombre}
-          </Text>
-          <Text>{props.item.categoria}</Text>
-        </View>
-        <View style={styles.itemBotones}>
-          <Text>{props.item.precioVenta}</Text>
-          <Button
-            title=" E "
-            color={'green'}
-            onPress={() => {
-              console.log("datos: ", props.item);
-              setTxtNombre(props.item.nombre);
-              setTxtCategoria(props.item.categoria);
-              setTxtPrecioCompra(props.item.precioCompra.toString());
-              setTxtPrecioVenta(props.item.precioVenta.toString());
-              setTxtId(props.item.id.toString());
-              esNuevo = false;
-              indiceSeleccionado = props.indice;
-            }}
-          />
-          <Button
-            title=" X "
-            color={'red'}
-            onPress={() => {
-              indiceSeleccionado = props.indice;
-              productos.splice(indiceSeleccionado, 1);
-              console.log("Producto eliminado: ", productos);
-              setNumElementos(productos.length);
-            }}
-          />
-        </View>
 
-      </View>
+
+  let ItemProducto = ({ indice, item }) => {
+    const [modalVisible, setModalVisible] = useState(false);
+    return (
+      <TouchableOpacity onPress={() => {
+        setTxtNombre(item.nombre);
+        setTxtCategoria(item.categoria);
+        setTxtPrecioCompra(item.precioCompra.toString());
+        setTxtPrecioVenta(item.precioVenta.toString());
+        setTxtId(item.id.toString());
+        esNuevo = false;
+        indiceSeleccionado = indice;
+      }}>
+        <View style={styles.itemPersona}>
+          <View style={styles.itemIndice}>
+            <Text>{item.id}</Text>
+          </View>
+          <View style={styles.itemContenido}>
+            <Text>
+              {item.nombre}
+            </Text>
+            <Text>{item.categoria}</Text>
+          </View>
+          <View style={styles.itemBotones}>
+            <Text>{item.precioVenta}</Text>
+            <Modal
+              animationType='slide'
+              transparent={true}
+              visible={modalVisible}
+              onRequestClose={() => {
+                setModalVisible(!modalVisible)
+              }}
+            >
+              <View style={styles.centeredView}>
+                <View style={styles.modalView}>
+                  <Text style={styles.modalText}>¿Seguro quiere Eliminar el producto?</Text>
+                  <Button
+                    title='Aceptar'
+                    style={[styles.button, styles.buttonClose]}
+                    onPress={() => {
+                      setModalVisible(!modalVisible)
+                      indiceSeleccionado = indice;
+                      productos.splice(indiceSeleccionado, 1);
+                      setNumElementos(productos.length);
+                    }}>
+
+                  </Button>
+                  <Button
+                    title='Cancelar'
+                    style={[styles.button, styles.buttonClose]}
+                    onPress={() => setModalVisible(!modalVisible)}>
+
+                  </Button>
+                </View>
+              </View>
+
+
+            </Modal>
+            <Button
+              title=" X "
+              color={'red'}
+              onPress={() => {
+                setModalVisible(true)
+
+              }}
+            />
+          </View>
+
+        </View>
+      </TouchableOpacity>
     );
   }
 
@@ -202,13 +232,13 @@ export default function App() {
         <FlatList
           style={styles.lista}
           data={productos}
-          renderItem={(elemento) => {
-            return <ItemProducto indice={elemento.index} item={elemento.item} />
+          renderItem={({ index, item }) => {
+            return <ItemProducto indice={index} item={item} />
 
           }}
-          keyExtractor={(item) => {
-            return item.id;
-          }}
+          keyExtractor={item =>
+            item.id
+          }
         />
       </View>
       <View style={styles.areaPie}>
@@ -304,6 +334,46 @@ const styles = StyleSheet.create({
 
 
 
+  },
+  centeredView: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  modalView: {
+    margin: 20,
+    backgroundColor: 'white',
+    borderRadius: 20,
+    padding: 35,
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 4,
+    elevation: 5,
+  },
+  button: {
+    borderRadius: 20,
+    padding: 10,
+    elevation: 2,
+  },
+  buttonOpen: {
+    backgroundColor: '#F194FF',
+  },
+  buttonClose: {
+    backgroundColor: '#2196F3',
+  },
+  textStyle: {
+    color: 'white',
+    fontWeight: 'bold',
+    textAlign: 'center',
+  },
+  modalText: {
+    marginBottom: 15,
+    textAlign: 'center',
   }
 
 });
